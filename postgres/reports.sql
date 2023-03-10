@@ -44,7 +44,7 @@ join register_creditor using(creditor_id)
 order by creditor_id;
 
 
-create view report_register_creditor as
+create view report_register_debt as
 select
 	turn_id,
 	creditor,
