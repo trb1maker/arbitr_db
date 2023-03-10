@@ -63,3 +63,53 @@ update book_sell
 set correspondent_id = md5(correspondent_id);
 
 alter table book_sell add foreign key (correspondent_id) references correspondent (correspondent_id);
+
+
+create view analytics as
+select
+	correspondent,
+	is_person,
+	status,
+	status_code,
+	date_trunc('month', age(date('2018-06-08'), start_date)) start_before_bancrupt,
+	date_trunc('month', age(end_date, start_date)) live_month,
+	okved,
+	region,
+	outcome,
+	cost_outcome,
+	income,
+	cost_income
+from (
+	select
+		correspondent_id,
+		debet outcome,
+		coalesce(cost_outcome, 0.0) cost_outcome,
+		credit income,
+		coalesce(cost_income, 0.0) cost_income
+	from (
+		select
+			correspondent_id,
+			sum(debet) debet,
+			sum(credit) credit
+		from bank_operation
+		group by correspondent_id
+	) as a
+	left join (
+		select
+			correspondent_id,
+			sum(cost_with_tax) cost_outcome
+		from book_buy
+		where doc_id not like 'А%'
+		group by correspondent_id
+	) as b using(correspondent_id)
+	left join (
+		select
+			correspondent_id,
+			sum(cost_with_tax) cost_income
+		from book_sell
+		where doc_id not like 'А%'
+		group by correspondent_id
+	) as c using(correspondent_id)
+) as a
+left join correspondent using(correspondent_id)
+order by start_before_bancrupt;
