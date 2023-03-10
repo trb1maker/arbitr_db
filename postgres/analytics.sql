@@ -67,7 +67,7 @@ alter table book_sell add foreign key (correspondent_id) references corresponden
 
 create view analytics as
 select
-	correspondent,
+	correspondent_id,
 	is_person,
 	status,
 	status_code,
