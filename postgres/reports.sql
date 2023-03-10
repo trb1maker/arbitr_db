@@ -87,3 +87,27 @@ from (
 ) as a
 join register_creditor using(creditor_id)
 order by turn_id, creditor_id;
+
+
+create view report_current_debt as
+select
+	current_debt.register_date,
+	turn_id,
+	creditor,
+	category,
+	debt,
+	coalesce(payment, 0) payment,
+	debt - coalesce(payment, 0) balance,
+	context
+from current_debt
+left join (
+	select
+		debt_id,
+		sum(payment) payment
+	from current_payment
+	group by debt_id
+) as a using (debt_id)
+join current_creditor using(creditor_id)
+left join current_category using(category_id)
+where not is_deleted
+order by turn_id, register_date, creditor_id, category_id;
