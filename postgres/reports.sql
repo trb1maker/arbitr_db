@@ -20,7 +20,7 @@ from (
 left join (
 	select
 		creditor_id,
-		sum(debt) voices_min
+		sum(debt) voices_max
 	from register_debt
 	where not is_late and
 	      not is_deleted and
@@ -31,7 +31,7 @@ left join (
 left join (
 	select
 		creditor_id,
-		sum(debt) voices_max
+		sum(debt) voices_min
 	from register_debt
 	where not is_late and
 	      not is_deleted and
