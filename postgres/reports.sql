@@ -111,3 +111,16 @@ join current_creditor using(creditor_id)
 left join current_category using(category_id)
 where not is_deleted
 order by turn_id, register_date, creditor_id, category_id;
+
+
+create view report_cost as
+select
+	turn_id,
+	category,
+	sum(debt) debt,
+	sum(payment) payment,
+	sum(balance) balance
+from report_current_debt
+where category notnull
+group by turn_id, category
+order by turn_id, category;
