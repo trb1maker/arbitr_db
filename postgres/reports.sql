@@ -42,3 +42,48 @@ left join (
 ) as c using (creditor_id)
 join register_creditor using(creditor_id)
 order by creditor_id;
+
+
+create view report_register_creditor as
+select
+	turn_id,
+	creditor,
+	debt,
+	debt_payment,
+	debt - debt_payment debt_balance,
+	forfeit,
+	forfeit_payment,
+	forfeit - forfeit_payment forfeit_balance
+from (
+	-- Суммирование требований по очередям и кредиторам
+	select
+		turn_id,
+		creditor_id,
+		sum(debt) debt,
+		sum(debt_payment) debt_payment,
+		sum(forfeit) forfeit,
+		sum(forfeit_payment) forfeit_payment
+	from (
+		-- Выборка требований и их объединение с погашениями
+		select
+			turn_id,
+			creditor_id,
+			debt_id,
+			case when not is_forfeit then debt else 0.0 end debt,
+			case when not is_forfeit then payment else 0.0 end debt_payment,
+			case when is_forfeit then debt else 0.0 end forfeit,
+			case when is_forfeit then payment else 0.0 end forfeit_payment
+		from register_debt
+		left join (
+			-- Учет погашения
+			select
+				debt_id,
+				sum(payment) payment
+			from register_payment
+			group by debt_id
+		) as a using(debt_id)
+	) as a
+	group by turn_id, creditor_id
+) as a
+join register_creditor using(creditor_id)
+order by turn_id, creditor_id;
